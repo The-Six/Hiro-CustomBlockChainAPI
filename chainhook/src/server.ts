@@ -43,8 +43,68 @@ function renderHTML(events: any[]): string {
   return html;
 }
 
-// All routes for the Express app
-app.post("/api/events", async (req, res) => {
+app.get("/api/getAllProposal", async (req, res) => {
+  const { data, error } = await supabase.from("proposalsubmitted").select();
+  if (error) {
+    res.status(400).json({ error });
+  } else {
+    res.status(200).json({ data });
+  }
+});
+
+app.post("/api/getAProposal", async (req, res) => {
+  const title = req.body.title;
+  const description = req.body.description;
+  const { data, error } = await supabase
+    .from("proposalsubmitted")
+    .select()
+    .eq("proposaltitle", title)
+    .eq("proposaldescription", description);
+
+  // const { data, error } = await supabase.from('books').select().textSearch('description', `'big'`);
+
+  if (error) {
+    res.status(400).json({ error });
+  } else {
+    res.status(200).json({ data });
+  }
+});
+
+app.post("/api/voteFor", async (req, res) => {
+  const title = req.body.title;
+  const description = req.body.description;
+  const currentNumVoteFor = req.body.currentNumVoteFor;
+
+  const { data, error } = await supabase
+    .from("proposalsubmitted")
+    .update({ votefornum: currentNumVoteFor + 1 })
+    .eq("proposaltitle", title)
+    .eq("proposaldescription", description);
+  if (error) {
+    res.status(400).json({ error });
+  } else {
+    res.status(200).json({ data });
+  }
+});
+
+app.post("/api/voteAgainst", async (req, res) => {
+  const title = req.body.title;
+  const description = req.body.description;
+  const currentNumVoteAgainst = req.body.currentNumVoteAgainst;
+
+  const { data, error } = await supabase
+    .from("proposalsubmitted")
+    .update({ voteagainstnum: currentNumVoteAgainst + 1 })
+    .eq("proposaltitle", title)
+    .eq("proposaldescription", description);
+  if (error) {
+    res.status(400).json({ error });
+  } else {
+    res.status(200).json({ data });
+  }
+});
+
+app.post("/api/submitProposal", async (req, res) => {
   const events = req.body;
   // Loop through each item in the apply array
   events.apply.forEach((item: any) => {
@@ -57,15 +117,16 @@ app.post("/api/events", async (req, res) => {
           console.log({ operation });
 
           const data = operation; // Parse out the data you want
-          // const data = "Test data";
-          // Insert and save it to db
-          // const { error } = await supabase
-          //   .from("proposals")
-          //   .insert({ data: data });
+          console.log(data);
 
-          const { error } = await supabase.from("proposals2").insert({
-            operation_key: Object.keys(data)[0],
-            operation_value: Object.values(data)[0],
+          const { error } = await supabase.from("proposalsubmitted").insert({
+            walletid: data.walletId,
+            proposaltitle: data.proposalTitle,
+            proposaldescription: data.proposalDescription,
+            votefornum: data.voteForNum,
+            voteagainstnum: data.voteAgainstNum,
+            voteforhistory: data.voteForHistory,
+            voteagainsthistory: data.voteAgainstHistory,
           });
           console.log({ error });
         });
@@ -74,8 +135,41 @@ app.post("/api/events", async (req, res) => {
   });
 
   // Send a response back to Chainhook to acknowledge receipt of the event
-  res.status(200).send({ message: "Proposal added!" });
+  res.status(200).send({ message: "Proposal Submitted!" });
 });
+
+// app.post("/api/events", async (req, res) => {
+//   const events = req.body;
+//   // Loop through each item in the apply array
+//   events.apply.forEach((item: any) => {
+//     // Loop through each transaction in the item
+//     item.transactions.forEach((transaction: any) => {
+//       // If the transaction has operations, loop through them
+//       if (transaction.operations) {
+//         transaction.operations.forEach(async (operation: any) => {
+//           // Log the operation
+//           console.log({ operation });
+
+//           const data = operation; // Parse out the data you want
+//           // const data = "Test data";
+//           // Insert and save it to db
+//           // const { error } = await supabase
+//           //   .from("proposals")
+//           //   .insert({ data: data });
+
+//           const { error } = await supabase.from("proposals2").insert({
+//             operation_key: Object.keys(data)[0],
+//             operation_value: Object.values(data)[0],
+//           });
+//           console.log({ error });
+//         });
+//       }
+//     });
+//   });
+
+//   // Send a response back to Chainhook to acknowledge receipt of the event
+//   res.status(200).send({ message: "Proposal added!" });
+// });
 
 // Start server on port 3000
 app.listen(PORT, () => {
