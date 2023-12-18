@@ -1,5 +1,14 @@
 import express, { Express, Request, Response } from "express";
 
+// Setup supabase
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = "https://pjzqvkpwcsxsnaktfhgc.supabase.co";
+// const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqenF2a3B3Y3N4c25ha3RmaGdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDI5MTUyMzgsImV4cCI6MjAxODQ5MTIzOH0.cimz-9KNZf80D5kGDc1aXsoZ61ESRTXas2vV_7ZK7Es";
+const supabase = createClient(supabaseUrl, supabaseKey || "");
+
 // Create a new express application
 const app: Express = express();
 
@@ -43,9 +52,22 @@ app.post("/api/events", async (req, res) => {
     item.transactions.forEach((transaction: any) => {
       // If the transaction has operations, loop through them
       if (transaction.operations) {
-        transaction.operations.forEach((operation: any) => {
+        transaction.operations.forEach(async (operation: any) => {
           // Log the operation
           console.log({ operation });
+
+          const data = operation; // Parse out the data you want
+          // const data = "Test data";
+          // Insert and save it to db
+          // const { error } = await supabase
+          //   .from("proposals")
+          //   .insert({ data: data });
+
+          const { error } = await supabase.from("proposals2").insert({
+            operation_key: Object.keys(data)[0],
+            operation_value: Object.values(data)[0],
+          });
+          console.log({ error });
         });
       }
     });
