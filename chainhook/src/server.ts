@@ -100,11 +100,15 @@ app.post("/api/voteFor", async (req, res) => {
 app.post("/api/voteAgainst", async (req, res) => {
   const title = req.body.title;
   const description = req.body.description;
-  const currentNumVoteAgainst = req.body.currentNumVoteAgainst;
+  const updatedNumVoteAgainst = req.body.updatedNumVoteAgainst;
+  const updatedVoteAgainstHistory = req.body.updatedVoteAgainstHistory;
 
   const { data, error } = await supabase
     .from("proposalsubmitted")
-    .update({ voteagainstnum: currentNumVoteAgainst + 1 })
+    .update({
+      voteagainstnum: updatedNumVoteAgainst,
+      voteagainsthistory: updatedVoteAgainstHistory,
+    })
     .eq("proposaltitle", title)
     .eq("proposaldescription", description);
   if (error) {
