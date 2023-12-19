@@ -9,11 +9,17 @@ const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqenF2a3B3Y3N4c25ha3RmaGdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDI5MTUyMzgsImV4cCI6MjAxODQ5MTIzOH0.cimz-9KNZf80D5kGDc1aXsoZ61ESRTXas2vV_7ZK7Es";
 const supabase = createClient(supabaseUrl, supabaseKey || "");
 
+// Allow CORS
+const cors = require("cors");
+
 // Create a new express application
 const app: Express = express();
 
 // The port the express app will listen on
 const PORT: number = 3000;
+
+// Use the CORS middleware
+app.use(cors());
 
 // Use the body-parser middleware to parse incoming request bodies.
 // We set a limit of 5mb to handle large payloads that may come with the POST requests.
@@ -73,11 +79,15 @@ app.post("/api/getAProposal", async (req, res) => {
 app.post("/api/voteFor", async (req, res) => {
   const title = req.body.title;
   const description = req.body.description;
-  const currentNumVoteFor = req.body.currentNumVoteFor;
+  const updatedNumVoteFor = req.body.updatedNumVoteFor;
+  const updatedVoteForHistory = req.body.updatedVoteForHistory;
 
   const { data, error } = await supabase
     .from("proposalsubmitted")
-    .update({ votefornum: currentNumVoteFor + 1 })
+    .update({
+      votefornum: updatedNumVoteFor,
+      voteforhistory: updatedVoteForHistory,
+    })
     .eq("proposaltitle", title)
     .eq("proposaldescription", description);
   if (error) {
